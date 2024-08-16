@@ -23,9 +23,9 @@ fi
 # 激活虚拟环境
 source $ENVIRONMENT_NAME/bin/activate
 
-# 安装paddlepaddle-gpu和其他依赖
+# 安装paddlepaddle和其他依赖
 pip install paddlepaddle
 pip install pytest-runner
 pip install paddlespeech
 
-# pip install -r requirements.txt
+pip install -r requirements.txt

@@ -4,7 +4,6 @@
 
 cd Chatbot/
 
-Paddle_server port 8090
 
 ./build.sh
 
