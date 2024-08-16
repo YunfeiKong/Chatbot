@@ -53,7 +53,7 @@ async def audio_to_audio(audio: UploadFile = File(...), history: str = Form(...)
             asr_text = call_asr_api(wav_path)
             llm_response = call_llm_api(asr_text)
             # TODO parse llm_response
-            tts_audio_path = call_tts_api("需要先完成llm_response_parser")
+            tts_audio_path = call_tts_api("llm_response")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error in processing with ASR, LLM, or TTS APIs: {e}")
     except Exception as e:
