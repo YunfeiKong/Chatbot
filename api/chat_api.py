@@ -66,7 +66,7 @@ class ChatModel:
             "response_mode": "blocking",
             "user": "test01"
         }
-        response = requests.post(self.llm_settings.url, headers=headers, data=json.dumps(data))
+        response = requests.post(self.llm_settings.url, headers=headers, data=json.dumps(data), verify=False)
         print(response.status_code)
         data = response.json()
         print(data)

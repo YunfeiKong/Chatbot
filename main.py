@@ -102,7 +102,7 @@ llm = ChatModel()
 # 先跑一遍ASR+TTS以加快推理速度
 
 tts(text="你好，这是一段测试音频", output="./test/output.wav",
-    am="fastspeech2_male", voc="pwgan_male")
+    am="fastspeech2_csmsc", voc="pwgan_csmsc")
 asr(P('./test/output.wav'))
 
 # 模拟的ASR API调用函数
@@ -121,7 +121,7 @@ def call_llm_api(text: str):
 def call_tts_api(text: str):
     # 调用外部TTS服务的代码
     output_wav_path = './web/wavs/tts.wav'
-    tts(text=text, output=output_wav_path, am="fastspeech2_male", voc="pwgan_male")
+    tts(text=text, output=output_wav_path, am="fastspeech2_csmsc", voc="pwgan_csmsc")
     return output_wav_path
 
 
