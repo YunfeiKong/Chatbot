@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from api.ffmpeg_api import convert_opus_to_wav
@@ -76,23 +77,30 @@ async def text_to_audio(item: TextItem):
     return JSONResponse(content={"llm_response": llm_response, "ttsAudio": tts_audio})
 
 
-# 当用户点击“播放语音”，如果本地没有缓存那条语音，则会从服务器搜索，如果服务器没有缓存，那么调用TTS
-# TODO
-@app.get("/api/text_converte_audio")
-async def text_converte_audio():
-    # print("Current Working Directory:", os.getcwd())
-    # dir_path = os.path.dirname(os.path.realpath(__file__))
-    # file_path = os.path.join(dir_path, "tmp_0006.wav")
-    # llm_response = "这是LLM的回应"
-    # return JSONResponse(content={"llm_response": llm_response, "file_url123": file_path})
+UPLOAD_DIR = "uploaded_files"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    # text = item.text
-    # if not text:
-    #     raise HTTPException(status_code=400, detail="No text part")
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...)):
+    try:
+        # 保存文件到本地
+        file_path = os.path.join(UPLOAD_DIR, file.filename)
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # 读取文件内容
+        with open(file_path, "r", encoding="utf-8") as f:
+            file_content = f.read()
+        instruct = '请分析我的运动状态，给出建议。'
+        # 模拟调用 LLM 和 TTS API
+        llm_response = call_llm_api(file_content + '请尽可能简要分析我的运动状态，给出一句话作为建议，不需要太长')
+        tts_audio_path = call_tts_api(llm_response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error in processing with ASR, LLM, or TTS APIs: {e}")
 
-    # tts_audio = call_tts_api(llm_response)
-    # return JSONResponse(content={"llm_response": llm_response, "ttsAudio": tts_audio})
-    return JSONResponse(content={"temp_response": "此功能暂时未完成，请等待开发"})
+    return JSONResponse(content={"asrText": instruct, "llm_response": llm_response, "ttsAudio": tts_audio_path})
+
 
 
 asr = ASRExecutor()

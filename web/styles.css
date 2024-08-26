@@ -20,7 +20,7 @@ h2 {
 .chat-container {
     display: flex;
     flex-direction: column;
-    max-width: 600px; /* 设定最大宽度和controls一致 */
+    max-width: 800; /* 设定最大宽度和controls一致 */
     margin: auto; /* 自动外边距确保居中 */
     background: white;
     padding: 20px;
@@ -58,7 +58,7 @@ h2 {
 }
 
 #controls {
-    max-width: 600px; /* 设定最大宽度与chat-container一致 */
+    max-width: 800; /* 设定最大宽度与chat-container一致 */
     display: flex;
     align-items: center;
     margin: 20px auto; /* 设置顶部外边距和水平居中 */

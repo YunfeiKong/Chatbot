@@ -3,6 +3,57 @@ let mediaRecorder;
 let audioChunks = [];
 let recordCount = 0; // 记录用户完成录音的次数
 
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded and parsed');
+    
+    document.getElementById('uploadButton').addEventListener('click', function() {
+        console.log('Upload button clicked');
+        
+        // 创建一个隐藏的文件输入框
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.style.display = 'none';
+
+        // 当文件选择完成后，立即上传文件
+        fileInput.addEventListener('change', function() {
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('No file selected.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('File uploaded successfully:', data);
+                addMessage('user', data.asrText);
+                addMessage('therapist', data.llm_response, true);
+                playTTSAudio(data.ttsAudio);
+            })
+            .catch(error => {
+                console.error('Error uploading file:', error);
+                alert('Error uploading file.');
+            });
+        });
+
+        // 触发文件选择对话框
+        fileInput.click();
+    });
+});
+
 function toggleRecording() {
     let recordBtn = document.getElementById('record-btn');
     if (!isRecording) {
@@ -306,6 +357,5 @@ async function loadAudio() {
         console.error('Error fetching and playing audio:', error);
     }
 }
-
 
 
