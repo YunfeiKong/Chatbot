@@ -102,7 +102,7 @@ async def upload_file(file: UploadFile = File(...)):
         # 读取文件内容
         with open(file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
-        instruct = """请分析我的运动状态，给出建议。参考标准0分：平衡能力好，建议做稍复杂的全身练习并增加力量性练习，增强体力,提高身体综合素质。
+        instruct = """请分析我的运动状态，给出尽可能有效简易的建议。参考标准0分：平衡能力好，建议做稍复杂的全身练习并增加力量性练习，增强体力,提高身体综合素质。
 1-4分：平衡能力开始降低，跌倒风险增大。建议增加提高平衡能力的练习，如单腿跳跃、倒走、太极拳和太
 极剑等。
 5-16分：平衡能力受到较大削弱，跌倒风险较大。建议做针对平衡能力的练习，如单足站立练习、“不倒翁”
@@ -110,10 +110,7 @@ async def upload_file(file: UploadFile = File(...)):
 17-24分：平衡能力较差，很容易跌倒。建议选择合适的助行器并补充钙质，做一些力所能及的简单运动，如
 走楼梯、散步、坐立练习、沿直线行走等，运动时应有人监护以确保安全。"""
         # 模拟调用 LLM 和 TTS API
-        llm_response = call_llm_api(
-            file_content
-            + "请尽可能简要分析我的运动状态，给出一句话作为建议，不需要太长"
-        )
+        llm_response = call_llm_api(file_content + instruct)
         tts_audio_path = call_tts_api(llm_response)
     except Exception as e:
         raise HTTPException(
@@ -123,7 +120,7 @@ async def upload_file(file: UploadFile = File(...)):
 
     return JSONResponse(
         content={
-            "asrText": instruct,
+            "asrText": "请评估我的运动状态并给出建议",
             "llm_response": llm_response,
             "ttsAudio": tts_audio_path,
         }
