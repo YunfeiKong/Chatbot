@@ -1,4 +1,5 @@
 import os
+import re
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from api.ffmpeg_api import convert_opus_to_wav
@@ -102,7 +103,7 @@ async def upload_file(file: UploadFile = File(...)):
         # 读取文件内容
         with open(file_path, "r", encoding="utf-8") as f:
             file_content = f.read()
-        instruct = """请分析我的运动状态，给出尽可能有效简易的建议。参考标准0分：平衡能力好，建议做稍复杂的全身练习并增加力量性练习，增强体力,提高身体综合素质。
+        instruct = """请分析我的运动状态，给出尽可能有效简易的建议，以纯文本的形式给出。参考标准0分：平衡能力好，建议做稍复杂的全身练习并增加力量性练习，增强体力,提高身体综合素质。
 1-4分：平衡能力开始降低，跌倒风险增大。建议增加提高平衡能力的练习，如单腿跳跃、倒走、太极拳和太
 极剑等。
 5-16分：平衡能力受到较大削弱，跌倒风险较大。建议做针对平衡能力的练习，如单足站立练习、“不倒翁”
@@ -147,11 +148,30 @@ def call_asr_api(audio_path: str):
     # 这里应该是调用外部ASR服务的代码
     return asr(P(audio_path), force_yes=True)  # "转换后的文本"
 
+def normalize_text(text):
+    # 删除换行符和多余的空格，将所有空白字符替换为单一空格
+    text = re.sub(r'\s+', ' ', text).strip()
 
+    # 替换标点符号
+    text = re.sub(r'[。?？!！；;]', '.', text)  # 替换省略号、问号、感叹号、分号为句号
+    text = re.sub(r'[？！]', '.', text)  # 替换英文问号、感叹号为句号
+    text = re.sub(r'[：:]', ',', text)  # 替换冒号为逗号
+    text = re.sub(r'[，,]', ',', text)  # 替换中文逗号为英文逗号
+
+    # 删除特殊字符
+    text = re.sub(r'[《》〈〉（）()“”‘’——¥]', '', text)  # 删除中文特殊字符
+    text = re.sub(r'[<>\"\'\[\]\{\}\|\-\_\+\=\*\&\%\$\#\@\!\`]', '', text)  # 删除英文特殊字符
+
+    # 将多个句号或逗号合并为一个
+    text = re.sub(r'\.{2,}', '.', text)
+    text = re.sub(r',{2,}', ',', text)
+    text = re.sub(r'\.+', '.', text)
+
+    return text
 # 模拟的LLM API调用函数
 def call_llm_api(text: str):
     # 这里应该是调用外部LLM服务的代码
-    return llm.new_line(text)
+    return normalize_text(llm.new_line(text))
 
 
 # 模拟的TTS API调用函数

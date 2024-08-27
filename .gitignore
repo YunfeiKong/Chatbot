@@ -2,3 +2,6 @@
 /Chatbot
 /server.log
 /uploaded_files
+.env	
+/test
+/web/wavs
