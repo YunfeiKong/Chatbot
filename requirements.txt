@@ -87,7 +87,7 @@ mpmath==1.3.0
 multidict==6.0.5
 multiprocess==0.70.12.2
 nara-wpe==0.0.10
-nltk==3.8.1
+nltk==3.9
 note-seq==0.0.5
 numba==0.58.1
 numpy==1.23.5
