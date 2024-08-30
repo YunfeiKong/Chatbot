@@ -2,6 +2,7 @@
 /Chatbot
 /server.log
 /uploaded_files
-.env	
+.env
 /test
 /web/wavs
+pyrightconfig.json

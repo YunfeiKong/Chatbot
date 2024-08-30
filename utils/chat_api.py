@@ -1,27 +1,31 @@
-import os
 from pydantic_settings import BaseSettings
 import requests
 import json
 
+
 class LLMSettings(BaseSettings):
     api_key: str
     url: str
+
     # TODO add others
     class Config:
-        env_file = '../.env'
+        env_file = ".env"
+
+
+
 
 def get_dialogue_history(dialogue_history_list: list):
     dialogue_history_tmp = []
     for item in dialogue_history_list:
-        if item['role'] == 'counselor':
-            text = '咨询师：' + item['content']
+        if item["role"] == "counselor":
+            text = "咨询师：" + item["content"]
         else:
-            text = '来访者：' + item['content']
+            text = "来访者：" + item["content"]
         dialogue_history_tmp.append(text)
 
-    dialogue_history = '\n'.join(dialogue_history_tmp)
+    dialogue_history = "\n".join(dialogue_history_tmp)
 
-    return dialogue_history + '\n' + '咨询师：'
+    return dialogue_history + "\n" + "咨询师："
 
 
 instruction = """
@@ -41,12 +45,11 @@ instruction = """
 """
 
 
-
 def get_instruction(dialogue_history):
-    query = f'''
+    query = f"""
 {instruction}
 对话：
-{dialogue_history}'''
+{dialogue_history}"""
 
     return query
 
@@ -58,41 +61,32 @@ class ChatModel:
 
     def chat_rag_online(self, msg):
         headers = {
-            'Authorization': 'Bearer ' + self.llm_settings.api_key,
-            'Content-Type': 'application/json'
+            "Authorization": "Bearer " + self.llm_settings.api_key,
+            "Content-Type": "application/json",
         }
-        data = {
-            "inputs": {"query": msg},
-            "response_mode": "blocking",
-            "user": "test01"
-        }
-        response = requests.post(self.llm_settings.url, headers=headers, data=json.dumps(data), verify=False)
-        print(response.status_code)
+        data = {"inputs": {"query": msg}, "response_mode": "blocking", "user": "test01"}
+        response = requests.post(
+            self.llm_settings.url, headers=headers, data=json.dumps(data), verify=False
+        )
         data = response.json()
-        print(data)
         # 提取 answer 字段
-        answer = data.get('answer')
+        answer = data.get("answer")
         return answer
-
 
     def new_line(self, usr_msg):
         # usr_msg = input('来访者：')
-        if usr_msg == '0':
+        if usr_msg == "0":
             exit()
         else:
-            self.dialogue_history_list.append({
-                'role': 'client',
-                'content': usr_msg
-            })
-            dialogue_history = get_dialogue_history(dialogue_history_list=self.dialogue_history_list)
+            self.dialogue_history_list.append({"role": "client", "content": usr_msg})
+            dialogue_history = get_dialogue_history(
+                dialogue_history_list=self.dialogue_history_list
+            )
             query = get_instruction(dialogue_history=dialogue_history)
             response = self.chat_rag_online(query)
-            print(f'咨询师：{response}')
-            self.dialogue_history_list.append({
-                'role': 'counselor',
-                'content': response
-            })
-
+            self.dialogue_history_list.append(
+                {"role": "counselor", "content": response}
+            )
             return response
 
     # def new_line_with_history(self, history: str):
