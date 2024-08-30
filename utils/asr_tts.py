@@ -19,7 +19,7 @@ class TransClient:
             am="fastspeech2_csmsc",
             voc="pwgan_csmsc",
         )
-        self.asr_executor(P("./test/output.wav"))
+        # self.asr_executor(P("./test/output.wav"))
 
 
     def tts(self, input_text: str) -> str:

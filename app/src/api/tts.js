@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const TTS_API_ENDPOINT = `${process.env.REACT_APP_API_BASE_URL}/tts`;
+const TTS_API_ENDPOINT = `${process.env.REACT_APP_API_BASE_URL}/api/tts`;
 
 export const getTextToSpeech = async (text) => {
   try {

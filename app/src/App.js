@@ -98,8 +98,8 @@ const handleSendMessage = async (message) => {
   try {
     const modelResponse = await ChatToLLM(message);
     setChatHistory([...newChatHistory, { sender: 'therapist', message: modelResponse.llm_response }]);
-    const ttsAudioBlob = await getTextToSpeech(modelResponse.llm_response);
-    playTTSAudio(ttsAudioBlob);
+    const ttsAudioURL = await getTextToSpeech(modelResponse.llm_response);
+    playTTSAudio("");
   } catch (error) {
     console.error('大模型 API 请求失败:', error);
   }
@@ -124,9 +124,10 @@ const handleSendMessage = async (message) => {
     }
   };
 
-  const playTTSAudio = (audioBlob) => {
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
+  const playTTSAudio = (audio_name) => {
+    // TODO (update this url with file name!)
+    const url = `${process.env.REACT_APP_API_BASE_URL}/audio/tts_output.wav`
+    const audio = new Audio(url);
     audio.play();
   };
 

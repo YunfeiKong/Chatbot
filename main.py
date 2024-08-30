@@ -11,10 +11,13 @@ from pydantic import BaseModel
 from utils.chat_api import ChatModel
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-WAV_DIR = "../src/wavs"
-UPLOAD_DIR = "../src/uploaded_files"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WAV_DIR = os.path.join(BASE_DIR, "src", "wavs")
+UPLOAD_DIR = os.path.join(BASE_DIR, "src", "uploads")
 
 app = FastAPI()
 
@@ -30,7 +33,6 @@ app.add_middleware(
     allow_headers=["*"],  # 允许携带的 Headers
 )
 
-app.mount("/static", StaticFiles(directory="web", html=True), name="static")
 
 
 class TextItem(BaseModel):
@@ -53,13 +55,23 @@ async def text_to_audio(text: TextItem):
     """
     return audio file
     """
-    
-    tts_audio_path = call_tts_api(text.text)
-    return FileResponse(
-        tts_audio_path,
-        media_type="audio/wav",
-        filename=os.path.basename(tts_audio_path),
-    )
+       
+    try:
+        tts_audio_path = call_tts_api(text.text)
+        logger.info(text.text)
+        audio_url = f"{os.path.basename(tts_audio_path)}"
+        return {"audio_name": audio_url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/audio/{filename}")
+async def get_audio_file(filename: str):
+    file_path = os.path.join(WAV_DIR, filename)
+    logger.info(file_path)
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="audio/wav")
+    else:
+        raise HTTPException(status_code=404, detail="File not found")
 
 
 @app.post("/api/asr")
@@ -87,7 +99,7 @@ async def llm_chat(text: TextItem):
         logger.info(llm_response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error in LLM processing: {e}")
-    return JSONResponse(content={"text": llm_response})
+    return JSONResponse(content={"llm_response": llm_response})
 
 
 @app.post("/api/upload")

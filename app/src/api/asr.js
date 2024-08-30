@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const ASR_API_ENDPOINT = `${process.env.REACT_APP_API_BASE_URL}/asr`;
+const ASR_API_ENDPOINT = `${process.env.REACT_APP_API_BASE_URL}/api/asr`;
 
 export const sendAudioToASR = async (audioBlob, history) => {
   const formData = new FormData();

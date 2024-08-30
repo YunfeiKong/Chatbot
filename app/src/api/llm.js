@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const LLM_API_ENDPOINT = `${process.env.REACT_APP_API_BASE_URL}/`;
+const LLM_API_ENDPOINT = `${process.env.REACT_APP_API_BASE_URL}/api/`;
 
 export const uploadFile = async (file) => {
   const formData = new FormData();
