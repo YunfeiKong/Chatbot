@@ -2,7 +2,7 @@
 set -xe
 
 # 检查virtualenv环境是否存在
-ENVIRONMENT_NAME="ChatBot"
+ENVIRONMENT_NAME=".chatbot"
 PYTHON_VERSION="3.8"
 
 # 检查是否安装了virtualenv
@@ -20,12 +20,7 @@ else
     echo "环境 $ENVIRONMENT_NAME 已存在。"
 fi
 
-# 激活虚拟环境
 source $ENVIRONMENT_NAME/bin/activate
-
-# 安装paddlepaddle和其他依赖
-pip install paddlepaddle
-pip install pytest-runner
-pip install paddlespeech
+export PYTHONWARNINGS="ignore:Unverified HTTPS request"
 
 pip install -r requirements.txt

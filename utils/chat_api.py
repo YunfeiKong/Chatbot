@@ -1,17 +1,7 @@
+from loguru import logger
 from pydantic_settings import BaseSettings
 import requests
 import json
-
-
-class LLMSettings(BaseSettings):
-    api_key: str
-    url: str
-
-    # TODO add others
-    class Config:
-        env_file = ".env"
-
-
 
 
 def get_dialogue_history(dialogue_history_list: list):
@@ -54,50 +44,42 @@ def get_instruction(dialogue_history):
     return query
 
 
+class LLMSettings(BaseSettings):
+    # api_key: str
+    url: str
+
+    class Config:
+        env_file = ".env"
+
+
 class ChatModel:
     def __init__(self):
         self.llm_settings = LLMSettings()
         self.dialogue_history_list = []
 
-    def chat_rag_online(self, msg):
+    def chat_rag_online(self, msg, max_token=1024):
         headers = {
-            "Authorization": "Bearer " + self.llm_settings.api_key,
             "Content-Type": "application/json",
         }
-        data = {"inputs": {"query": msg}, "response_mode": "blocking", "user": "test01"}
+        data = {"inputs": msg, "parameters": {"max_new_tokens": max_token}}
+        logger.info(msg)
         response = requests.post(
             self.llm_settings.url, headers=headers, data=json.dumps(data), verify=False
         )
         data = response.json()
         # 提取 answer 字段
-        answer = data.get("answer")
+        answer = data.get("generated_text")
         return answer
 
     def new_line(self, usr_msg):
-        # usr_msg = input('来访者：')
-        if usr_msg == "0":
-            exit()
-        else:
-            self.dialogue_history_list.append({"role": "client", "content": usr_msg})
-            dialogue_history = get_dialogue_history(
-                dialogue_history_list=self.dialogue_history_list
-            )
-            query = get_instruction(dialogue_history=dialogue_history)
-            response = self.chat_rag_online(query)
-            self.dialogue_history_list.append(
-                {"role": "counselor", "content": response}
-            )
-            return response
-
-    # def new_line_with_history(self, history: str):
-    #     assert not len(history.split('\n')) % 2
-    #     history = history.replace('用户:', '来访者：')
-    #     history = history.replace('康复咨询师:', '咨询师：')
-    #     history = history.replace(' ', '')
-    #     print(history)
-    #     history += '\n' + '康复咨询师：'
-    #     query = get_instruction(dialogue_history=history)
-    #     response, _ = self.model.chat(self.tokenizer, query, history=[], temperature=0.8, top_p=0.8)
-    #     print(f'咨询师：{response}')
-
-    #     return response
+        self.dialogue_history_list.append(
+            {"role": "client", "content": usr_msg})
+        dialogue_history = get_dialogue_history(
+            dialogue_history_list=self.dialogue_history_list
+        )
+        query = get_instruction(dialogue_history=dialogue_history)
+        response = self.chat_rag_online(query)
+        self.dialogue_history_list.append(
+            {"role": "counselor", "content": response}
+        )
+        return response
