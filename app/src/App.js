@@ -116,12 +116,13 @@ const handleSendMessage = async (message) => {
   };
 
   const loadChatHistory = () => {
-    const history = JSON.parse(localStorage.getItem('chatHistory'));
-    if (history) {
-      setChatHistory(history);
-    } else {
-      addMessage('therapist', '您好，请问有什么可以帮助您的？', false);
-    }
+    // const history = JSON.parse(localStorage.getItem('chatHistory'));
+    // if (history) {
+    //   setChatHistory(history);
+    // } else {
+    //   addMessage('therapist', '您好，请问有什么可以帮助您的？', false);
+    // }
+    addMessage('therapist', '您好，请问有什么可以帮助您的？', false);
   };
 
   const playTTSAudio = (audio_name) => {

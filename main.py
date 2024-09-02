@@ -95,6 +95,7 @@ async def audio_to_text(audio: UploadFile = File(...)):
 @app.post("/api/llm_chat")
 async def llm_chat(text: TextItem):
     try:
+        logger.info(text.text)
         llm_response = call_llm_api(text.text)
         logger.info(llm_response)
     except Exception as e:
