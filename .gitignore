@@ -1,7 +1,7 @@
 /exp
 /Chatbot
 /server.log
-/uploaded_files
+/src/uploaded_files
 .env
 /test
 /web/wavs

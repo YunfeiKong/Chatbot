@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from pydantic import BaseModel
 from utils.chat_api import ChatModel
@@ -10,10 +11,12 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_DIR = os.path.join(BASE_DIR, "src", "uploads")
+UPLOAD_DIR = os.path.join(BASE_DIR, "src", "uploaded_files")
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="web", html=True), name="static")
 llm = ChatModel()
 
 # 2、声明一个 源 列表；重点：要包含跨域的客户端 源
@@ -45,8 +48,10 @@ async def llm_chat(text: TextItem):
 
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
+
     try:
         file_path = os.path.join(UPLOAD_DIR, str(file.filename))
+        logger.info(file_path)
         with open(file_path, "wb") as buffer:
             content = await file.read()
             buffer.write(content)
@@ -81,7 +86,7 @@ async def upload_file(file: UploadFile = File(...)):
 # 模拟的LLM API调用函数
 def call_llm_api(text: str):
     # 这里应该是调用外部LLM服务的代码
-    return llm.chat_rag_online(text)
+    return llm.chat_gaudi(text, 200)
 
 
 # 运行FastAPI应用

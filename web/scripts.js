@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('File uploaded successfully:', data);
                 addMessage('user', data.asrText);
                 addMessage('therapist', data.llm_response, true);
-                playTTSAudio(data.ttsAudio);
+                // playTTSAudio(data.ttsAudio);
             })
             .catch(error => {
                 console.error('Error uploading file:', error);
@@ -152,7 +152,28 @@ function sendMessage() {
     if (userInput.trim() !== '') {
         addMessage('user', userInput);
         document.getElementById('user-input').value = ''; // 清空输入框
-        sendChatHistory(); // 发送聊天记录
+        // sendChatHistory(); // 发送聊天记录
+        fetch("/api/llm_chat", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',  // 指定发送的是JSON
+            },
+            body: JSON.stringify({text: userInput})  // 将数据格式化为JSON字符串
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("接收到的回应: ", data);
+                // 显示LLM的回应
+                if (data.llm_response) {
+                    addMessage('therapist', data.llm_response, true);
+                }
+            })
+            .catch(error => console.log("发送聊天历史失败: ", error));
     }
 }
 
@@ -295,7 +316,7 @@ function sendChatHistory() {
     console.log("发送聊天历史");
 
     // 发送请求到后端
-    fetch("/api/text_to_audio", {
+    fetch("/api/llm_chat", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',  // 指定发送的是JSON

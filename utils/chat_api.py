@@ -57,19 +57,25 @@ class ChatModel:
         self.llm_settings = LLMSettings()
         self.dialogue_history_list = []
 
-    def chat_rag_online(self, msg, max_token=1024):
+    def chat_gaudi(self, msg, max_token=1024):
         headers = {
             "Content-Type": "application/json",
         }
         data = {"inputs": msg, "parameters": {"max_new_tokens": max_token}}
-        logger.info(msg)
-        response = requests.post(
-            self.llm_settings.url, headers=headers, data=json.dumps(data), verify=False
-        )
-        data = response.json()
-        # 提取 answer 字段
-        answer = data.get("generated_text")
-        return answer
+        logger.info(f"Sending message: {msg}")
+        
+        try:
+            response = requests.post(
+                self.llm_settings.url, headers=headers, data=json.dumps(data), verify=False
+            )
+            response.raise_for_status()  # 检查请求是否成功
+            data = response.json()
+            # 提取 answer 字段
+            answer = data.get("generated_text")
+            return answer
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request failed: {e}")
+            return None
 
     def new_line(self, usr_msg):
         self.dialogue_history_list.append(
