@@ -76,6 +76,32 @@ class ChatModel:
         except requests.exceptions.RequestException as e:
             logger.error(f"Request failed: {e}")
             return None
+        
+    def chat_on_arc770(self, msg, temperature = 0.2):
+        base_url = "http://127.0.0.1:7861/knowledge_base/local_kb/samples"
+        data = {
+            "model": "qwen:7b",
+            "messages": [
+                {"role": "user", "content": instruction + msg},
+            ],
+                "extra_body": {
+                # "mode": {"local_kb", "samples"},
+                "top_k": 1,
+                "score_threshold": 1.0,
+                "return_direct": True,
+            },
+            "temperature": temperature,
+        }
+        response = requests.post(f"{base_url}/chat/completions", json=data, stream=False)
+        if response.status_code == 200:
+            response_json = json.loads(response.json())
+            logger.info(response_json)
+            content = response_json['choices'][0]['message']['content']
+            return content
+        else:
+            logger.error(f"请求失败，状态码：{response.status_code}")
+            return None
+
 
     def new_line(self, usr_msg):
         self.dialogue_history_list.append(

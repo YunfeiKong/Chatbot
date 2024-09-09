@@ -86,7 +86,7 @@ async def upload_file(file: UploadFile = File(...)):
 # 模拟的LLM API调用函数
 def call_llm_api(text: str):
     # 这里应该是调用外部LLM服务的代码
-    return llm.chat_gaudi(text, 200)
+    return llm.chat_on_arc770(text, 0.1)
 
 
 # 运行FastAPI应用
