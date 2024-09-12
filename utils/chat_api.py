@@ -77,12 +77,12 @@ class ChatModel:
             logger.error(f"Request failed: {e}")
             return None
         
-    def chat_on_arc770(self, msg, temperature = 0.2):
+    def chat_on_arc770(self, msg, temperature = 0.1):
         base_url = "http://127.0.0.1:7861/knowledge_base/local_kb/samples"
         data = {
-            "model": "qwen:7b",
+            "model": "qwen:14b",
             "messages": [
-                {"role": "user", "content": instruction + msg},
+                {"role": "user", "content": msg},
             ],
                 "extra_body": {
                 # "mode": {"local_kb", "samples"},

@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from utils.chat_api import ChatModel
 from fastapi.middleware.cors import CORSMiddleware
 import urllib3
+import re
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -35,11 +36,32 @@ app.add_middleware(
 class TextItem(BaseModel):
     text: str
 
+def normalize_text(text):
+    # 删除换行符和多余的空格，将所有空白字符替换为单一空格
+    text = re.sub(r'\s+', ' ', text).strip()
+
+    # 替换标点符号
+    text = re.sub(r'[。?？!！；;]', '.', text)  # 替换省略号、问号、感叹号、分号为句号
+    text = re.sub(r'[？！]', '.', text)  # 替换英文问号、感叹号为句号
+    text = re.sub(r'[：:]', ',', text)  # 替换冒号为逗号
+    text = re.sub(r'[，,]', ',', text)  # 替换中文逗号为英文逗号
+
+    # 删除特殊字符
+    text = re.sub(r'[《》〈〉（）()“”‘’——¥]', '', text)  # 删除中文特殊字符
+    text = re.sub(r'[<>\"\'\[\]\{\}\|\-\_\+\=\*\&\%\$\#\@\!\`]', '', text)  # 删除英文特殊字符
+
+    # 将多个句号或逗号合并为一个
+    text = re.sub(r'\.{2,}', '.', text)
+    text = re.sub(r',{2,}', ',', text)
+    text = re.sub(r'\.+', '.', text)
+
+    return text
+
 
 @app.post("/api/llm_chat")
 async def llm_chat(text: TextItem):
     try:
-        llm_response = call_llm_api(text.text)
+        llm_response = normalize_text(call_llm_api(text.text))
         logger.info(llm_response)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error in LLM processing: {e}")
@@ -66,7 +88,7 @@ async def upload_file(file: UploadFile = File(...)):
         练习、沿直线行走、侧身行走等,适当增加一些力量性练习。
         17-24分：平衡能力较差，很容易跌倒。建议选择合适的助行器并补充钙质，做一些力所能及的简单运动，如
         走楼梯、散步、坐立练习、沿直线行走等，运动时应有人监护以确保安全。"""
-        llm_response = call_llm_api(file_content + instruct)
+        llm_response = normalize_text(call_llm_api(file_content + instruct))
         logger.info(llm_response)
     except Exception as e:
         logger.error("error in /api/upload")
