@@ -80,7 +80,7 @@ class ChatModel:
     def chat_on_arc770(self, msg, temperature = 0.1):
         base_url = "http://127.0.0.1:7861/knowledge_base/local_kb/samples"
         data = {
-            "model": "qwen:14b",
+            "model": "qwen2.5:14b",
             "messages": [
                 {"role": "user", "content": msg},
             ],
@@ -95,7 +95,7 @@ class ChatModel:
         response = requests.post(f"{base_url}/chat/completions", json=data, stream=False)
         if response.status_code == 200:
             response_json = json.loads(response.json())
-            logger.info(response_json)
+            # logger.info(response_json)
             content = response_json['choices'][0]['message']['content']
             return content
         else:

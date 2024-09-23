@@ -1,10 +1,11 @@
 import os
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 from pydantic import BaseModel
 from utils.chat_api import ChatModel
+from utils.questions import Question, questions
 from fastapi.middleware.cors import CORSMiddleware
 import urllib3
 import re
@@ -105,8 +106,25 @@ async def upload_file(file: UploadFile = File(...)):
     )
 
 
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        for q in questions:
+            await websocket.send_json({"question": q.to_dict()})
+            data = await websocket.receive_json()
+            q.mark_as_answered(data.get("answer"))
+            q.score = int(call_llm_api(f'请根据评分标准{str(q.scoring_criteria)}和用户的回答`{q.answer}`来判断该问题的分数，返回一个数字即可，不需要任何多余的描述'))
+            logger.info(q.to_dict())
+        total_score = sum(q.score for q in questions) 
+        await websocket.send_json({"total_score": total_score})
+    except WebSocketDisconnect:
+        logger.info("Client disconnected")
+
+
 # 模拟的LLM API调用函数
-def call_llm_api(text: str):
+def call_llm_api(text: str) -> str:
     # 这里应该是调用外部LLM服务的代码
     return llm.chat_on_arc770(text, 0.1)
 
