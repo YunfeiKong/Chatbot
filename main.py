@@ -1,18 +1,18 @@
-import os
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from typing import List, Dict
+import copy
+import os
+import re
+import urllib3
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
-from pydantic import BaseModel
 from utils.chat_api import ChatModel
 from utils.questions import Question, questions
-from fastapi.middleware.cors import CORSMiddleware
-import urllib3
-import re
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE_DIR, "src", "uploaded_files")
@@ -37,6 +37,9 @@ app.add_middleware(
 class TextItem(BaseModel):
     text: str
 
+class AnswerRequest(BaseModel):
+    answer: str
+
 def normalize_text(text):
     # 删除换行符和多余的空格，将所有空白字符替换为单一空格
     text = re.sub(r'\s+', ' ', text).strip()
@@ -49,7 +52,8 @@ def normalize_text(text):
 
     # 删除特殊字符
     text = re.sub(r'[《》〈〉（）()“”‘’——¥]', '', text)  # 删除中文特殊字符
-    text = re.sub(r'[<>\"\'\[\]\{\}\|\-\_\+\=\*\&\%\$\#\@\!\`]', '', text)  # 删除英文特殊字符
+    text = re.sub(
+        r'[<>\"\'\[\]\{\}\|\-\_\+\=\*\&\%\$\#\@\!\`]', '', text)  # 删除英文特殊字符
 
     # 将多个句号或逗号合并为一个
     text = re.sub(r'\.{2,}', '.', text)
@@ -65,7 +69,8 @@ async def llm_chat(text: TextItem):
         llm_response = normalize_text(call_llm_api(text.text))
         logger.info(llm_response)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error in LLM processing: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Error in LLM processing: {e}")
     return JSONResponse(content={"llm_response": llm_response})
 
 
@@ -106,22 +111,41 @@ async def upload_file(file: UploadFile = File(...)):
     )
 
 
+user_sessions: Dict[str, List[Question]] = {}
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        for q in questions:
-            await websocket.send_json({"question": q.to_dict()})
-            data = await websocket.receive_json()
-            q.mark_as_answered(data.get("answer"))
-            q.score = int(call_llm_api(f'请根据评分标准{str(q.scoring_criteria)}和用户的回答`{q.answer}`来判断该问题的分数，返回一个数字即可，不需要任何多余的描述'))
+
+@app.post("/start")
+async def start_session(request: Request):
+    session_id = request.client.host  # Use client IP as session ID for simplicity
+    user_sessions[session_id] = [copy.copy(q) for q in questions]
+    return {"message": "Session started", "question": user_sessions[session_id][0].to_dict()}
+
+
+@app.post("/answer")
+async def answer_question(request: Request, answer_request: AnswerRequest):
+    session_id = request.client.host
+    if session_id not in user_sessions:
+        raise HTTPException(status_code=400, detail="Session not started")
+
+    session_questions = user_sessions[session_id]
+    for q in session_questions:
+        if q.answer is None:
+            q.mark_as_answered(answer_request.answer)
+            q.score = int(call_llm_api(
+                f'请根据评分标准{str(q.scoring_criteria)}和用户的回答`{q.answer}`来判断该问题的分数，返回一个数字即可，不需要任何多余的描述'))
             logger.info(q.to_dict())
-        total_score = sum(q.score for q in questions) 
-        await websocket.send_json({"total_score": total_score})
-    except WebSocketDisconnect:
-        logger.info("Client disconnected")
+            break
+    else:
+        raise HTTPException(
+            status_code=400, detail="All questions already answered")
 
+    next_question = next(
+        (q for q in session_questions if q.answer is None), None)
+    if next_question:
+        return {"message": "Next question", "question": next_question.to_dict()}
+    else:
+        total_score = sum(q.score for q in session_questions)
+        return {"message": "All questions answered", "total_score": total_score}
 
 # 模拟的LLM API调用函数
 def call_llm_api(text: str) -> str:

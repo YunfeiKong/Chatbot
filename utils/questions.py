@@ -44,7 +44,7 @@ questions = [
         question_id=1,
         question_type="binary",
         has_subquestions=False,
-        content="近三个月内跌倒史",
+        content="请问您近三个月内是否有跌倒",
         scoring_criteria={"否": 0, "是": 25}
     ),
     Question(

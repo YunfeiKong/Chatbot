@@ -95,7 +95,7 @@ class ChatModel:
         response = requests.post(f"{base_url}/chat/completions", json=data, stream=False)
         if response.status_code == 200:
             response_json = json.loads(response.json())
-            # logger.info(response_json)
+            logger.debug(response_json)
             content = response_json['choices'][0]['message']['content']
             return content
         else:
