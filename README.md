@@ -1,9 +1,9 @@
 ## 运行
 
 ### step1
-安装intel gpu驱动，以添加对*ollama*的支持。参考https://github.com/intel-analytics/ipex-llm/blob/main/docs/mddocs/Quickstart/ollama_quickstart.md完成ollama的安装
+安装intel gpu驱动，以添加对*ollama*的支持。参考https://github.com/intel-analytics/ipex-llm/blob/main/docs/mddocs/Quickstart/ollama_quickstart.md
 
-安装完成后通过命令
+完成ollama的安装后通过命令
 
 ```
 conda activate llm-cpp
