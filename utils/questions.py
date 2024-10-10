@@ -51,7 +51,7 @@ questions = [
         question_id=2,
         question_type="binary",
         has_subquestions=False,
-        content="超过一个医疗诊断",
+        content="请问是否有参加过医疗诊断",
         scoring_criteria={"否": 0, "是": 15}
     ),
     Question(
@@ -66,21 +66,21 @@ questions = [
         question_id=4,
         question_type="binary",
         has_subquestions=False,
-        content="是否接受药物治疗",
+        content="是否在接受药物治疗",
         scoring_criteria={"否": 0, "是": 20}
     ),
     Question(
         question_id=5,
         question_type="multiple_choice",
         has_subquestions=False,
-        content="步态/移动",
+        content="步态、移动是否正常",
         scoring_criteria={"正常/卧床不能移动": 0, "双下肢虚弱乏力": 10, "残疾或功能障碍": 20}
     ),
     Question(
         question_id=6,
         question_type="multiple_choice",
         has_subquestions=False,
-        content="认知状态",
+        content="认知状态如何",
         scoring_criteria={"自主行为能力": 0, "无控制能力": 15}
     )
 ]

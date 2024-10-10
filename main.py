@@ -149,7 +149,7 @@ async def answer_question(request: Request, answer_request: AnswerRequest):
 
 # 模拟的LLM API调用函数
 def call_llm_api(text: str) -> str:
-    # 这里应该是调用外部LLM服务的代码
+    # return '666'
     return llm.chat_on_arc770(text, 0.1)
 
 
